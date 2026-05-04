@@ -3,6 +3,8 @@
 > Owner: **Melih Macit (300201088)** · Branch: `melih`
 >
 > Bu klasör, Undergraduate Transfer Management System (UTMS) projesinin **Senaryo 4 (ÖİDB Review)** ve **Senaryo 6 (Intibak Preparation)** kullanım senaryolarına ait backend implementasyonudur. Diğer senaryoların backend'i ekibin diğer üyeleri tarafından eklenecektir.
+>
+> **Repo durumu**: Frontend (Vite + React + shadcn/ui) repo kökünde (`src/app/`); backend bu klasörde (`backend/`). pnpm workspace olarak iki paket bir arada yönetilir (root `pnpm-workspace.yaml`).
 
 ---
 
@@ -232,10 +234,34 @@ Testler `npm test` ile çalıştırılır; her test SRS / Test Report'taki bir t
 
 ---
 
-## 6. Bilinen Açıklar / Sonraki Adımlar (Diğer Ekip Üyeleri İçin)
+## 6. Frontend Entegrasyon Notları
+
+Frontend (`src/app/`) şu an `localStorage` ve `lib/mock-data.ts` ile çalışıyor; gerçek backend bağlantısı henüz yapılmamış. Backend response shape'leri SDD'ye sadık UPPER_SNAKE enum'lar kullanırken frontend `src/app/types/index.ts` lowercase basit enum'lar kullanıyor. Bu kasıtlı bir farktır — entegrasyon sırasında bir **adapter layer** yazılacak.
+
+### Önerilen API Client Mapper (frontend tarafına)
+
+| Frontend Beklediği | Backend Döndüren | Eşleme |
+|---|---|---|
+| `UserRole = 'oidb'` | `UserRole = 'OIDB_OFFICER'` | `roles.map(r => r.toLowerCase().split('_')[0])` |
+| `ApplicationStatus = 'intake_verification'` | `ApplicationStatus = 'PENDING_OIDB_VERIFICATION'` | tablo eşleme |
+| `Application.id` | `Application.applicationId` | rename |
+| `Application.gpa` | `Application.submittedGpa` | rename |
+| `Application.osymScore` | `Application.submittedYksScore` | rename |
+| `ApplicationDocument.fileName` | `DocumentVersion.standardizedFileName` | flatten son version |
+| `IntibakEntry` (flat) | `IntibakTable + MappingEntry` (nested) | flatten transformation |
+
+Mapper `src/app/lib/api-client.ts` altına yazılacak (henüz yok). Backend hâlihazırda doğru, audit-friendly bir API; frontend tarafında shape adaptasyonu daha az iş.
+
+### Auth Köprüsü
+Frontend `localStorage.currentUser` kullanıyor; backend `x-mock-user` header bekliyor. Geçiş için iki seçenek:
+1. **Kısa vade**: Frontend her API isteğinde `localStorage.currentUser.id`'yi `x-mock-user` header'ına ekler.
+2. **Uzun vade**: Emre'nin auth backend'i hazır olunca login response JWT döndürür, frontend `Authorization: Bearer ...` ile gönderir, backend mockAuth → jwtAuth ile değiştirilir.
+
+## 7. Bilinen Açıklar / Sonraki Adımlar (Diğer Ekip Üyeleri İçin)
 
 - **Persistence**: `InMemory*Repository` sınıfları, `Prisma*Repository` adapter'ı yazılınca `container.ts` içinde tek satır değiştirilerek production'a alınır.
 - **Auth**: Emre'nin `/api/auth/login` endpoint'i hazır olunca `mockAuthMiddleware` yerine JWT verify middleware'i takılır; payload formatı `{ userId, roles, departmentId?, facultyId? }` olarak ortaktır.
 - **External API'ler**: `EDevletMockClient` ve `OcrParserMockClient` aynı public method imzalarıyla gerçek HTTP client'lara yer değiştirir.
 - **Senaryo 5 (YGK Ranking) entegrasyonu**: Senaryo 6 başlamadan önce `Application.rankingCategory` set edilmiş olmalı; bu alan hazır olduğu için Senaryo 5 backend'i sadece bu alanı yazmakla sorumlu.
 - **Senaryo 7 (Faculty Board)**: `EvaluationPackage.status = SENT` durumundaki paketleri Faculty Board kuyruğundan okur; package immutability burada garantilenmiştir.
+- **Frontend bağlantısı**: `src/app/components/oidb/IntakeVerification.tsx` → `/api/oidb/applications/:id` ; `src/app/components/ygk/IntibakGeneration.tsx` → `/api/ygk/intibak/:id/prepare`.

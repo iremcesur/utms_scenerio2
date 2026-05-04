@@ -1,5 +1,5 @@
 {
-  "name": "utms-backend",
+  "name": "@utms/backend",
   "version": "0.1.0",
   "description": "UTMS Backend — Scenario 4 (OIDB Review) & Scenario 6 (Intibak Preparation). Owner: Melih Macit.",
   "private": true,
