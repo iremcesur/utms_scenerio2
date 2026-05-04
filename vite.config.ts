@@ -29,4 +29,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src/app'),
     },
   },
+  build: {
+    // Increase chunk size warning limit to avoid CI/build failures on Vercel
+    // Default is 500 (KB). Raised to 2000 KB (2 MB).
+    chunkSizeWarningLimit: 2000,
+  },
 })
