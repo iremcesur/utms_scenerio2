@@ -154,7 +154,7 @@ async function uploadToBlob(
   }
   const pathname = `documents/${applicationId}/${documentType}/v${versionNumber}/${standardizedName}`;
   const blob = await put(pathname, file.buffer, {
-    access: "public",
+    access: "private",
     contentType: file.mimetype,
   });
   return blob.url;
