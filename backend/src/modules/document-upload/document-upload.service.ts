@@ -139,22 +139,17 @@ function standardizedFileName(
   return `${applicationId}_${documentType}_${tckn}.${ext}`;
 }
 
-// Upload file to Vercel Blob and return the public URL as the storage key.
-// Falls back to a local path string when BLOB_READ_WRITE_TOKEN is not set (dev without Vercel).
 async function uploadToBlob(
-  standardizedName: string,
   applicationId: string,
   documentType: DocumentType,
   versionNumber: number,
+  standardizedName: string,
   file: UploadedFile,
 ): Promise<string> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    // Local dev fallback — no actual storage, just a deterministic path
-    return `local://documents/${applicationId}/${documentType}/v${versionNumber}/${standardizedName}`;
-  }
-  const pathname = `documents/${applicationId}/${documentType}/v${versionNumber}/${standardizedName}`;
-  const blob = await put(pathname, file.buffer, {
-    access: "public",
+  const blobPath = `documents/${applicationId}/${documentType}/v${versionNumber}/${standardizedName}`;
+  // @ts-ignore -- @vercel/blob v2+ supports "private"; run pnpm install to update local types
+  const blob = await put(blobPath, file.buffer, {
+    access: "private",
     contentType: file.mimetype,
   });
   return blob.url;
@@ -256,43 +251,43 @@ export class DocumentUploadService {
       file.originalname,
     );
 
+    // Determine next version number before blob upload
+    const existingDoc = await prisma.document.findFirst({
+      where: { applicationId, documentType },
+    });
+    const existingVersionCount = existingDoc
+      ? await prisma.documentVersion.count({ where: { documentId: existingDoc.documentId } })
+      : 0;
+    const nextVersion = existingVersionCount + 1;
+
+    // Upload to private Vercel Blob store first (outside transaction — blob uploads can't be rolled back)
+    const blobUrl = await uploadToBlob(applicationId, documentType, nextVersion, fileName, file);
+
     // Upsert Document slot, then add a new active DocumentVersion
     const result = await prisma.$transaction(async (tx) => {
-      let document = await tx.document.findFirst({
-        where: { applicationId, documentType },
-      });
+      const doc = await tx.document.findFirst({ where: { applicationId, documentType } });
 
-      if (!document) {
-        document = await tx.document.create({
-          data: {
-            applicationId,
-            documentType,
-            status: "UPLOADED",
-          },
+      let documentId: string;
+      if (!doc) {
+        const created = await tx.document.create({
+          data: { applicationId, documentType, status: "UPLOADED" },
         });
+        documentId = created.documentId;
       } else {
-        // Archive the previously active version
         await tx.documentVersion.updateMany({
-          where: { documentId: document.documentId, isActive: true },
+          where: { documentId: doc.documentId, isActive: true },
           data: { isActive: false },
         });
         await tx.document.update({
-          where: { documentId: document.documentId },
+          where: { documentId: doc.documentId },
           data: { status: "UPLOADED" },
         });
+        documentId = doc.documentId;
       }
-
-      const existingVersionCount = await tx.documentVersion.count({
-        where: { documentId: document.documentId },
-      });
-      const nextVersion = existingVersionCount + 1;
-
-      // Upload to Vercel Blob outside the transaction (network call), store returned URL
-      const blobUrl = await uploadToBlob(fileName, applicationId, documentType, nextVersion, file);
 
       const newVersion = await tx.documentVersion.create({
         data: {
-          documentId: document.documentId,
+          documentId,
           standardizedFileName: fileName,
           storageKey: blobUrl,
           versionNumber: nextVersion,
@@ -303,7 +298,7 @@ export class DocumentUploadService {
         },
       });
 
-      return { document, newVersion, totalVersions: nextVersion };
+      return { newVersion, totalVersions: nextVersion };
     });
 
     const meta = SLOT_META[documentType];
