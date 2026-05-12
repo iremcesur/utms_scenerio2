@@ -5,6 +5,7 @@ import { errorHandler } from "./shared/middleware/error-handler";
 import { buildOidbRouter } from "./modules/oidb/oidb.routes";
 import { buildIntibakRouter } from "./modules/intibak/intibak.routes";
 import { buildDocumentUploadRouter } from "./modules/document-upload/document-upload.routes";
+import { buildApplicationRouter } from "./modules/application/application.routes";
 
 export interface CreateAppOptions {
   container?: AppContainer;
@@ -14,6 +15,17 @@ export function createApp(options: CreateAppOptions = {}): { app: Express; conta
   const container = options.container ?? createContainer();
   const app = express();
 
+  // CORS — allow any origin so the frontend Vercel domain can call this backend.
+  // ALLOWED_ORIGIN env var can restrict to a specific domain in production.
+  app.use((req: Request, res: Response, next) => {
+    const origin = req.headers.origin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN ?? origin);
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,x-mock-user");
+    if (req.method === "OPTIONS") { res.status(204).end(); return; }
+    next();
+  });
+
   app.use(express.json({ limit: "12mb" }));
 
   app.get("/health", (_req: Request, res: Response) => {
@@ -21,6 +33,7 @@ export function createApp(options: CreateAppOptions = {}): { app: Express; conta
   });
 
   const auth = mockAuthMiddleware(container);
+  app.use("/api/applications", auth, buildApplicationRouter());
   app.use("/api/documents", auth, buildDocumentUploadRouter());
   app.use("/api/oidb", auth, buildOidbRouter(container));
   app.use("/api/ygk", auth, buildIntibakRouter(container));

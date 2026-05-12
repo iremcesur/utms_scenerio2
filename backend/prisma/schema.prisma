@@ -37,15 +37,11 @@ model User {
   departmentId     String?   @map("department_id")
   facultyId        String?   @map("faculty_id")
 
-  organization     Organization?       @relation(fields: [organizationId], references: [organizationId])
-  student          Student?
-  sessions         SessionLog[]
-  password         Password?
-  resetToken       ResetToken?
-  uploadedVersions DocumentVersion[]   @relation("uploader")
-  auditLogs        AuditLog[]          @relation("actor")
-  notifications    NotificationRecord[] @relation("recipient")
-  decidedAppeals   Appeal[]            @relation("appeal_decider")
+  organization Organization? @relation(fields: [organizationId], references: [organizationId])
+  student      Student?
+  sessions     SessionLog[]
+  password     Password?
+  resetToken   ResetToken?
 
   @@map("users")
 }
@@ -104,8 +100,8 @@ model AuditLog {
   affectedEntityId   String? @map("affected_entity_id")
   affectedEntityType String? @map("affected_entity_type")
 
+  // actorUserId stored as plain string — no FK so InMemory user IDs work without Neon users row.
   session SessionLog? @relation(fields: [sessionId], references: [sessionId])
-  actor   User?       @relation("actor", fields: [actorUserId], references: [userId])
 
   @@index([actorUserId])
   @@index([affectedEntityId, affectedEntityType])
@@ -126,8 +122,7 @@ model Student {
   yearOfStudy       Int?     @map("year_of_study")
   currentDepartment String?  @map("current_department") @db.VarChar(100)
 
-  user         User          @relation(fields: [studentId], references: [userId])
-  applications Application[]
+  user User @relation(fields: [studentId], references: [userId])
 
   @@map("student")
 }
@@ -149,7 +144,7 @@ model Application {
   targetDepartmentId String    @map("targeted_department_id")
   targetedSemester   Int?      @map("targeted_semester")
   transferScore      Float?    @map("transfer_score")
-  status             String    @default("PENDING_DOCUMENT_UPLOAD") @db.VarChar(50)
+  currentStatus      String    @default("PENDING_DOCUMENT_UPLOAD") @map("status") @db.VarChar(50)
   submittedAt        DateTime  @default(now()) @map("submitted_at")
   lastModifiedAt     DateTime  @updatedAt @map("last_modified_at")
   correctionNotes    String[]  @map("correction_notes")
@@ -177,14 +172,15 @@ model Application {
   ydyoExempt          Boolean  @default(false) @map("ydyo_exempt")
   rankingCategory     String?  @map("ranking_category")
 
-  student       Student        @relation(fields: [studentId], references: [studentId])
+  // studentId is stored as plain string — no FK to students table so local dev
+  // works without seeding Neon's users/students tables.
   documents     Document[]
   appeals       Appeal[]
   intibakTables IntibakTable[]
 
   @@index([studentId])
   @@index([targetDepartmentId])
-  @@index([status])
+  @@index([currentStatus])
   @@map("applications")
 }
 
@@ -223,8 +219,8 @@ model DocumentVersion {
   hasBarcode           Boolean  @default(false) @map("has_barcode")
   isCorrupt            Boolean  @default(false) @map("is_corrupt")
 
+  // uploadedBy stores the userId string — no FK so InMemory user IDs work without a Neon users row.
   document Document @relation(fields: [documentId], references: [documentId])
-  uploader User     @relation("uploader", fields: [uploadedBy], references: [userId])
 
   @@index([documentId])
   @@map("document_versions")
@@ -267,7 +263,6 @@ model Appeal {
   decidedByUserId    String?   @map("decided_by_user_id")
 
   application Application @relation(fields: [applicationId], references: [applicationId])
-  decidedBy   User?       @relation("appeal_decider", fields: [decidedByUserId], references: [userId])
 
   @@index([applicationId])
   @@map("appeals")
@@ -287,7 +282,7 @@ model NotificationRecord {
   failureReason   String?  @map("failure_reason")
   createdAt       DateTime @default(now()) @map("created_at")
 
-  recipient User @relation("recipient", fields: [recipientUserId], references: [userId])
+  // recipientUserId stored as plain string — no FK so InMemory user IDs work without Neon users row.
 
   @@index([recipientUserId])
   @@map("notification_records")

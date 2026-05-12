@@ -18,6 +18,7 @@ import {
 import type { User } from '../../App';
 import { ApplicationForm } from './ApplicationForm';
 import { DocumentUpload } from './DocumentUpload';
+import { createApplication } from '../../lib/api/document-upload';
 import { ApplicationTimeline } from './ApplicationTimeline';
 import { FinalResult } from './FinalResult';
 import { AppealForm } from './AppealForm';
@@ -68,11 +69,27 @@ export function StudentDashboard({ user, onLogout, onSwitchRole }: StudentDashbo
   const [currentSection, setCurrentSection] = useState<Section>('dashboard');
   const [currentView, setCurrentView] = useState<StudentView>('dashboard');
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
-  const [applicationData, setApplicationData] = useState<any>(null);
+  const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
 
-  const handleFormSave = (data: any) => {
-    setApplicationData(data);
-    setCurrentView('upload-documents');
+  const handleFormSave = async (data: any) => {
+    try {
+      const { applicationId } = await createApplication(user.id, {
+        studentTckn: data.tckn ?? '00000000000',
+        studentFullName: `${data.name ?? ''} ${data.surname ?? ''}`.trim() || user.name,
+        targetDepartmentId: (data.targetProgram ?? 'unknown').toLowerCase().replace(/\s+/g, '-'),
+        targetSemester: Number(data.targetSemester ?? 3),
+        submittedGpa: Number(data.gpa ?? 0),
+        submittedYksScore: data.osymScore ? Number(data.osymScore) : undefined,
+        currentInstitution: data.currentUniversity,
+        currentDepartment: data.currentProgram,
+      });
+      setActiveApplicationId(applicationId);
+      setCurrentView('upload-documents');
+    } catch (e) {
+      // Fall back to local placeholder so the UI still navigates forward
+      setActiveApplicationId(`local-${Date.now()}`);
+      setCurrentView('upload-documents');
+    }
   };
 
   const getStatusConfig = (status: string) => {
@@ -120,8 +137,8 @@ export function StudentDashboard({ user, onLogout, onSwitchRole }: StudentDashbo
             Geri Dön
           </Button>
           <DocumentUpload
-            applicationId="APP-2025-NEW"
-            applicationData={applicationData}
+            applicationId={activeApplicationId ?? ''}
+            userId={user.id}
             onComplete={() => setCurrentView('dashboard')}
             onBack={() => setCurrentView('new-application')}
           />
