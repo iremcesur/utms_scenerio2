@@ -1,7 +1,7 @@
 import request from "supertest";
 import { Express } from "express";
 import { createApp } from "../../src/app";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
 
@@ -16,7 +16,7 @@ describe("Ranking 5B: Ineligible - Low GPA", () => {
 
     // Seed test data: 3 applications, 2 eligible, 1 with low GPA
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "low-gpa-app-01",
         studentId: "student-low-01",
         studentTckn: "22345678901",
@@ -30,9 +30,8 @@ describe("Ranking 5B: Ineligible - Low GPA", () => {
         submittedYksScore: 480.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "low-gpa-app-02",
         studentId: "student-low-02",
         studentTckn: "22345678902",
@@ -46,9 +45,8 @@ describe("Ranking 5B: Ineligible - Low GPA", () => {
         submittedYksScore: 470.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "low-gpa-app-03",
         studentId: "student-low-03",
         studentTckn: "22345678903",
@@ -62,7 +60,6 @@ describe("Ranking 5B: Ineligible - Low GPA", () => {
         submittedYksScore: 460.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

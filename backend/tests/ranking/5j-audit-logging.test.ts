@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5J: Audit Logging", () => {
   let app: Express;
@@ -15,7 +15,7 @@ describe("Ranking 5J: Audit Logging", () => {
     container = created.container;
 
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "audit-app-01",
         studentId: "student-audit-01",
         studentTckn: "10234567890",
@@ -29,9 +29,8 @@ describe("Ranking 5J: Audit Logging", () => {
         submittedYksScore: 480.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "audit-app-02",
         studentId: "student-audit-02",
         studentTckn: "10234567891",
@@ -45,7 +44,6 @@ describe("Ranking 5J: Audit Logging", () => {
         submittedYksScore: 470.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

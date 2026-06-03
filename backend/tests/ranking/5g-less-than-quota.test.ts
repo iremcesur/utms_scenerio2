@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5G: Eligible Applicants Less Than Quota", () => {
   let app: Express;
@@ -16,7 +16,7 @@ describe("Ranking 5G: Eligible Applicants Less Than Quota", () => {
 
     // Only 3 eligible applicants for a quota of 8
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "quota-app-01",
         studentId: "student-quota-01",
         studentTckn: "72345678901",
@@ -30,9 +30,8 @@ describe("Ranking 5G: Eligible Applicants Less Than Quota", () => {
         submittedYksScore: 490.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "quota-app-02",
         studentId: "student-quota-02",
         studentTckn: "72345678902",
@@ -46,9 +45,8 @@ describe("Ranking 5G: Eligible Applicants Less Than Quota", () => {
         submittedYksScore: 470.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "quota-app-03",
         studentId: "student-quota-03",
         studentTckn: "72345678903",
@@ -62,7 +60,6 @@ describe("Ranking 5G: Eligible Applicants Less Than Quota", () => {
         submittedYksScore: 455.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5D: Academic Eligibility Fails - Invalid Semester", () => {
   let app: Express;
@@ -15,7 +15,7 @@ describe("Test Case 5D: Academic Eligibility Fails - Invalid Semester", () => {
     container = created.container;
 
     // Deniz Arslan: GPA 3.10, semester 4 (INVALID - only 3 or 5 allowed)
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-deniz-arslan",
       studentId: "student-deniz",
       studentTckn: "88888888888",
@@ -28,7 +28,6 @@ describe("Test Case 5D: Academic Eligibility Fails - Invalid Semester", () => {
       submittedYksScore: 465.0,
       yksExamYear: 2024,
       finishedSemester: 4, // INVALID SEMESTER
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

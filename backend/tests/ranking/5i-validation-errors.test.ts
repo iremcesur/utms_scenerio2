@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5I: Validation Errors", () => {
   let app: Express;
@@ -14,7 +14,7 @@ describe("Ranking 5I: Validation Errors", () => {
     app = created.app;
     container = created.container;
 
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
         applicationId: "val-app-01",
       studentId: "student-val-01",
       studentTckn: "92345678901",
@@ -28,7 +28,6 @@ describe("Ranking 5I: Validation Errors", () => {
       submittedYksScore: 480.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
       });
 
     container.applications.put(application);
@@ -111,6 +110,6 @@ describe("Ranking 5I: Validation Errors", () => {
       .expect(404);
 
     expect(response.body.message).toContain("No applications found");
-    expect(response.body.message).toContain("INTAKE_VERIFIED");
+    expect(response.body.message).toContain("IN_REVIEW_YGK");
   });
 });

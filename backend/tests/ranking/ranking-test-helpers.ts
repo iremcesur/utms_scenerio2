@@ -30,3 +30,20 @@ export function buildTestApplication(
     ...partial,
   };
 }
+
+/**
+ * Helper to create application ready for ranking (IN_REVIEW_YGK status)
+ * Use this for tests that execute the ranking algorithm
+ * The ranking service will evaluate eligibility and calculate scores
+ */
+export function buildReadyForRankingApplication(
+  partial: Partial<Application> & { applicationId: string }
+): Application {
+  const app = buildTestApplication(partial);
+
+  // Applications ready for ranking must be in IN_REVIEW_YGK status
+  // The ranking algorithm will handle eligibility checks and score calculation
+  app.currentStatus = ApplicationStatus.InReviewYgk;
+
+  return app;
+}

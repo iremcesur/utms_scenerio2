@@ -9,6 +9,16 @@ const ExecuteRankingSchema = z.object({
   quota: z.number().int().positive("Quota must be a positive number"),
 });
 
+const EligibilityDecisionSchema = z.object({
+  eligible: z.boolean(),
+  note: z.string().optional(),
+});
+
+const ConditionsDecisionSchema = z.object({
+  conditionsMet: z.boolean(),
+  note: z.string().optional(),
+});
+
 export class RankingController {
   constructor(private readonly service: RankingService) {}
 
@@ -50,6 +60,110 @@ export class RankingController {
     res.json({
       overview,
       message: "Department ranking overview retrieved",
+    });
+  };
+
+  // ─── Individual Review Methods ────────────────────────────────────────────
+
+  startReview = (req: Request, res: Response): void => {
+    const userId = this.requireUser(req);
+    const { applicationId } = req.params;
+
+    this.service.startApplicationReview(applicationId, userId);
+
+    res.json({
+      message: "Application review started",
+      applicationId,
+      status: "IN_REVIEW_YGK",
+    });
+  };
+
+  getEligibility = (req: Request, res: Response): void => {
+    this.requireUser(req);
+    const { applicationId } = req.params;
+
+    const data = this.service.getEligibilityData(applicationId);
+
+    res.json(data);
+  };
+
+  saveEligibilityDecision = (req: Request, res: Response): void => {
+    const userId = this.requireUser(req);
+    const { applicationId } = req.params;
+    const body = EligibilityDecisionSchema.parse(req.body);
+
+    this.service.saveEligibilityDecision(applicationId, {
+      eligible: body.eligible,
+      note: body.note,
+      actorUserId: userId,
+    });
+
+    res.json({
+      message: body.eligible
+        ? "Eligibility confirmed - proceed to department conditions"
+        : "Application marked as not eligible",
+      eligible: body.eligible,
+    });
+  };
+
+  getDepartmentConditions = (req: Request, res: Response): void => {
+    this.requireUser(req);
+    const { applicationId } = req.params;
+
+    const data = this.service.getDepartmentConditions(applicationId);
+
+    res.json(data);
+  };
+
+  saveConditionsDecision = (req: Request, res: Response): void => {
+    const userId = this.requireUser(req);
+    const { applicationId } = req.params;
+    const body = ConditionsDecisionSchema.parse(req.body);
+
+    this.service.saveConditionsDecision(applicationId, {
+      conditionsMet: body.conditionsMet,
+      note: body.note,
+      actorUserId: userId,
+    });
+
+    res.json({
+      message: body.conditionsMet
+        ? "Department conditions met - proceed to score calculation"
+        : "Application flagged - conditions not met",
+      conditionsMet: body.conditionsMet,
+    });
+  };
+
+  getScoreCalculation = (req: Request, res: Response): void => {
+    this.requireUser(req);
+    const { applicationId } = req.params;
+
+    const data = this.service.calculateScoreForReview(applicationId);
+
+    res.json(data);
+  };
+
+  confirmScore = (req: Request, res: Response): void => {
+    const userId = this.requireUser(req);
+    const { applicationId } = req.params;
+
+    this.service.confirmScore(applicationId, userId);
+
+    res.json({
+      message: "Score confirmed and saved - application ready for ranking",
+      applicationId,
+    });
+  };
+
+  invalidateScore = (req: Request, res: Response): void => {
+    const userId = this.requireUser(req);
+    const { applicationId } = req.params;
+
+    this.service.invalidateScore(applicationId, userId);
+
+    res.json({
+      message: "Score invalidated. Please re-verify eligibility.",
+      applicationId,
     });
   };
 

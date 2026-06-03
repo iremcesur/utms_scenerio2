@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
   let app: Express;
@@ -14,9 +14,9 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
     app = created.app;
     container = created.container;
 
-    // Seed test data: 10 applications, all INTAKE_VERIFIED
+    // Seed test data: 10 applications, all IN_REVIEW_YGK with confirmed scores
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-01",
         studentId: "student-01",
         studentTckn: "12345678901",
@@ -30,9 +30,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 480.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-02",
         studentId: "student-02",
         studentTckn: "12345678902",
@@ -46,9 +45,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 470.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-03",
         studentId: "student-03",
         studentTckn: "12345678903",
@@ -62,9 +60,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 490.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-04",
         studentId: "student-04",
         studentTckn: "12345678904",
@@ -78,9 +75,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 460.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-05",
         studentId: "student-05",
         studentTckn: "12345678905",
@@ -94,9 +90,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 485.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-06",
         studentId: "student-06",
         studentTckn: "12345678906",
@@ -110,9 +105,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 475.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-07",
         studentId: "student-07",
         studentTckn: "12345678907",
@@ -126,9 +120,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 455.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-08",
         studentId: "student-08",
         studentTckn: "12345678908",
@@ -142,9 +135,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 478.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-09",
         studentId: "student-09",
         studentTckn: "12345678909",
@@ -158,9 +150,8 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 465.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "rank-app-10",
         studentId: "student-10",
         studentTckn: "12345678910",
@@ -174,7 +165,6 @@ describe("Ranking 5A: Happy Path - Full Ranking Workflow", () => {
         submittedYksScore: 450.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

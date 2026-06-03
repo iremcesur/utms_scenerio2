@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5H: Unauthorized Access Control", () => {
   let app: Express;
@@ -14,7 +14,7 @@ describe("Ranking 5H: Unauthorized Access Control", () => {
     app = created.app;
     container = created.container;
 
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
         applicationId: "auth-app-01",
       studentId: "student-auth-01",
       studentTckn: "82345678901",
@@ -28,7 +28,6 @@ describe("Ranking 5H: Unauthorized Access Control", () => {
       submittedYksScore: 480.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
       });
 
     container.applications.put(application);
@@ -85,7 +84,7 @@ describe("Ranking 5H: Unauthorized Access Control", () => {
     // Reset application status first
     const application = container.applications.findById("auth-app-01");
     if (application) {
-      application.currentStatus = ApplicationStatus.IntakeVerified;
+      application.currentStatus = ApplicationStatus.InReviewYgk;
       application.rankingCategory = undefined;
       container.applications.save(application);
     }

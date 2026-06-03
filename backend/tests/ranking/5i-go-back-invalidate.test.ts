@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5I: Score Invalidated - Go Back", () => {
   let app: Express;
@@ -14,7 +14,7 @@ describe("Test Case 5I: Score Invalidated - Go Back", () => {
     app = created.app;
     container = created.container;
 
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-goback-test",
       studentId: "student-goback",
       studentTckn: "40404040404",
@@ -27,7 +27,6 @@ describe("Test Case 5I: Score Invalidated - Go Back", () => {
       submittedYksScore: 460.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

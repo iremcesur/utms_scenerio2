@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5H: Score Calculation Error - Missing Data", () => {
   let app: Express;
@@ -15,7 +15,7 @@ describe("Test Case 5H: Score Calculation Error - Missing Data", () => {
     container = created.container;
 
     // Ceren Aydın: GPA 2.90, semester 5, YKS score field is EMPTY
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-ceren-aydin",
       studentId: "student-ceren",
       studentTckn: "30303030303",
@@ -28,7 +28,6 @@ describe("Test Case 5H: Score Calculation Error - Missing Data", () => {
       submittedYksScore: undefined, // MISSING YKS SCORE
       yksExamYear: undefined,
       finishedSemester: 5,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

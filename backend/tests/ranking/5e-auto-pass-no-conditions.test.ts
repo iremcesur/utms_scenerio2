@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5E: Department Conditions - No Conditions Defined (Auto Pass)", () => {
   let app: Express;
@@ -15,7 +15,7 @@ describe("Test Case 5E: Department Conditions - No Conditions Defined (Auto Pass
     container = created.container;
 
     // Burak Çelik: GPA 2.90, semester 5, Civil Engineering (no dept conditions defined)
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-burak-celik",
       studentId: "student-burak",
       studentTckn: "99999999999",
@@ -28,7 +28,6 @@ describe("Test Case 5E: Department Conditions - No Conditions Defined (Auto Pass
       submittedYksScore: 455.0,
       yksExamYear: 2024,
       finishedSemester: 5,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

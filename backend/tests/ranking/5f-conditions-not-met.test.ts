@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5F: Department Conditions Not Met", () => {
   let app: Express;
@@ -16,7 +16,7 @@ describe("Test Case 5F: Department Conditions Not Met", () => {
 
     // Selin Kaya: GPA 2.80, semester 3, Architecture
     // Studio grade BB (requires AA), portfolio empty
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-selin-kaya",
       studentId: "student-selin",
       studentTckn: "10101010101",
@@ -29,7 +29,6 @@ describe("Test Case 5F: Department Conditions Not Met", () => {
       submittedYksScore: 450.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

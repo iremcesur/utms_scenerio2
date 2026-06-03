@@ -133,6 +133,344 @@ export class RankingService {
   }
 
   /**
+   * Start individual review of an application
+   * Transitions from INTAKE_VERIFIED to IN_REVIEW_YGK
+   */
+  startApplicationReview(applicationId: string, actorUserId: string): void {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.IntakeVerified) {
+      throw new ValidationError(
+        `Application must be in INTAKE_VERIFIED status. Current: ${app.currentStatus}`
+      );
+    }
+
+    app.currentStatus = ApplicationStatus.InReviewYgk;
+    this.deps.applications.save(app);
+
+    this.deps.audit.write({
+      actorUserId,
+      actorRole: UserRole.YgkMember,
+      actionType: "YGK_REVIEW_STARTED",
+      affectedEntityId: applicationId,
+      affectedEntityType: "Application",
+      previousValue: JSON.stringify({ status: ApplicationStatus.IntakeVerified }),
+      newValue: JSON.stringify({ status: ApplicationStatus.InReviewYgk }),
+    });
+  }
+
+  /**
+   * Get academic eligibility data for an application
+   */
+  getEligibilityData(applicationId: string) {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    const eligibility = this.evaluateEligibility(app);
+    const warnings: string[] = [];
+
+    if (!eligibility.eligible && eligibility.reason) {
+      warnings.push(eligibility.reason);
+    }
+
+    return {
+      applicationId: app.applicationId,
+      studentFullName: app.studentFullName,
+      gpa: app.submittedGpa,
+      activeSemester: app.finishedSemester,
+      targetSemester: app.targetSemester,
+      preScreening: app.preScreening,
+      ydyoDecision: app.ydyoExempt ? "EXEMPT" : "REQUIRED",
+      language: app.language,
+      eligible: eligibility.eligible,
+      warnings,
+    };
+  }
+
+  /**
+   * Save eligibility decision for an application
+   */
+  saveEligibilityDecision(
+    applicationId: string,
+    decision: {
+      eligible: boolean;
+      note?: string;
+      actorUserId: string;
+    }
+  ): void {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    if (!decision.eligible) {
+      // If not eligible, require a note
+      if (!decision.note || decision.note.trim().length === 0) {
+        throw new ValidationError(
+          "A note is required when marking an application as not eligible"
+        );
+      }
+
+      // Mark as ineligible and close the application
+      app.currentStatus = ApplicationStatus.RankedRed;
+      app.rankingCategory = RankingCategory.Red;
+      app.rejectionReason = decision.note;
+      app.transferScore = 0;
+      this.deps.applications.save(app);
+
+      this.deps.audit.write({
+        actorUserId: decision.actorUserId,
+        actorRole: UserRole.YgkMember,
+        actionType: "ELIGIBILITY_FAILED",
+        affectedEntityId: applicationId,
+        affectedEntityType: "Application",
+        previousValue: JSON.stringify({ status: ApplicationStatus.InReviewYgk }),
+        newValue: JSON.stringify({
+          status: ApplicationStatus.RankedRed,
+          reason: decision.note,
+        }),
+      });
+    } else {
+      // Mark as eligible, continue to next step
+      this.deps.audit.write({
+        actorUserId: decision.actorUserId,
+        actorRole: UserRole.YgkMember,
+        actionType: "ELIGIBILITY_PASSED",
+        affectedEntityId: applicationId,
+        affectedEntityType: "Application",
+        newValue: JSON.stringify({ eligible: true }),
+      });
+    }
+  }
+
+  /**
+   * Get department conditions for an application
+   */
+  getDepartmentConditions(applicationId: string) {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    // TODO: Fetch actual department-specific conditions from a repository
+    // For now, return a placeholder structure
+    const hasConditions = false; // Mock: Computer Engineering has no conditions
+
+    return {
+      applicationId: app.applicationId,
+      departmentId: app.targetDepartmentId,
+      hasConditions,
+      conditions: [], // e.g., [{name: "Design Studio", grade: "AA", met: true}]
+      autoPass: !hasConditions,
+      message: !hasConditions
+        ? "No dept. conditions — proceeding."
+        : "Please verify department conditions.",
+    };
+  }
+
+  /**
+   * Save department conditions decision
+   */
+  saveConditionsDecision(
+    applicationId: string,
+    decision: {
+      conditionsMet: boolean;
+      note?: string;
+      actorUserId: string;
+    }
+  ): void {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    if (!decision.conditionsMet) {
+      // If conditions not met, require a note
+      if (!decision.note || decision.note.trim().length === 0) {
+        throw new ValidationError(
+          "A note is required when marking conditions as not met"
+        );
+      }
+
+      // Flag application
+      app.currentStatus = ApplicationStatus.RankedRed;
+      app.rankingCategory = RankingCategory.Red;
+      app.rejectionReason = decision.note;
+      app.transferScore = 0;
+      this.deps.applications.save(app);
+
+      this.deps.audit.write({
+        actorUserId: decision.actorUserId,
+        actorRole: UserRole.YgkMember,
+        actionType: "DEPT_CONDITIONS_FAILED",
+        affectedEntityId: applicationId,
+        affectedEntityType: "Application",
+        previousValue: JSON.stringify({ status: ApplicationStatus.InReviewYgk }),
+        newValue: JSON.stringify({
+          status: ApplicationStatus.RankedRed,
+          reason: decision.note,
+        }),
+      });
+    } else {
+      // Conditions met, continue to score calculation
+      this.deps.audit.write({
+        actorUserId: decision.actorUserId,
+        actorRole: UserRole.YgkMember,
+        actionType: "DEPT_CONDITIONS_PASSED",
+        affectedEntityId: applicationId,
+        affectedEntityType: "Application",
+        newValue: JSON.stringify({ conditionsMet: true }),
+      });
+    }
+  }
+
+  /**
+   * Calculate and display score for review (not yet confirmed)
+   */
+  calculateScoreForReview(applicationId: string) {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    if (!app.submittedYksScore) {
+      throw new ValidationError(
+        "Score could not be calculated. (431-CALC) - YKS score is missing"
+      );
+    }
+
+    const score = this.calculateTransferScore(
+      app.submittedGpa,
+      app.submittedYksScore
+    );
+
+    return {
+      applicationId: app.applicationId,
+      yksScore: app.submittedYksScore,
+      gpa: app.submittedGpa,
+      calculatedScore: score,
+      formula: "(YKS / 500 * 0.90) + (GPA * 0.10)",
+    };
+  }
+
+  /**
+   * Confirm and save score (makes it permanent)
+   */
+  confirmScore(applicationId: string, actorUserId: string): void {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    if (!app.submittedYksScore) {
+      throw new ValidationError(
+        "Cannot confirm score - YKS score is missing"
+      );
+    }
+
+    const score = this.calculateTransferScore(
+      app.submittedGpa,
+      app.submittedYksScore
+    );
+
+    app.transferScore = score;
+    this.deps.applications.save(app);
+
+    this.deps.audit.write({
+      actorUserId,
+      actorRole: UserRole.YgkMember,
+      actionType: "SCORE_CONFIRMED",
+      affectedEntityId: applicationId,
+      affectedEntityType: "Application",
+      newValue: JSON.stringify({
+        score: score.toFixed(5),
+        yksScore: app.submittedYksScore,
+        gpa: app.submittedGpa,
+      }),
+    });
+  }
+
+  /**
+   * Invalidate score (Go Back functionality)
+   */
+  invalidateScore(applicationId: string, actorUserId: string): void {
+    const app = this.deps.applications.findById(applicationId);
+
+    if (!app) {
+      throw new NotFoundError(`Application ${applicationId} not found`);
+    }
+
+    if (app.currentStatus !== ApplicationStatus.InReviewYgk) {
+      throw new ValidationError(
+        `Application must be in IN_REVIEW_YGK status. Current: ${app.currentStatus}`
+      );
+    }
+
+    app.transferScore = undefined;
+    this.deps.applications.save(app);
+
+    this.deps.audit.write({
+      actorUserId,
+      actorRole: UserRole.YgkMember,
+      actionType: "SCORE_INVALIDATED",
+      affectedEntityId: applicationId,
+      affectedEntityType: "Application",
+      newValue: JSON.stringify({
+        scoreInvalidated: true,
+        message: "User requested to go back and correct data",
+      }),
+    });
+  }
+
+  /**
    * Execute ranking for a specific department and period
    */
   executeRanking(input: RankingExecutionInput): RankingSummaryDto {
@@ -143,13 +481,15 @@ export class RankingService {
     }
 
     // Fetch all applications ready for ranking
+    // Applications must be IN_REVIEW_YGK (with or without confirmed scores)
+    // Those without scores will be evaluated and may be ineligible
     const applications = this.deps.applications
       .findByDepartmentAndPeriod(departmentId, periodId)
-      .filter((app) => app.currentStatus === ApplicationStatus.IntakeVerified);
+      .filter((app) => app.currentStatus === ApplicationStatus.InReviewYgk);
 
     if (applications.length === 0) {
       throw new NotFoundError(
-        `No applications found with status INTAKE_VERIFIED for department ${departmentId}, period ${periodId}`
+        `No applications found with status IN_REVIEW_YGK for department ${departmentId}, period ${periodId}`
       );
     }
 

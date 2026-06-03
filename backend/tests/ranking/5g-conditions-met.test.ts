@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5G: Department Conditions Met", () => {
   let app: Express;
@@ -16,7 +16,7 @@ describe("Test Case 5G: Department Conditions Met", () => {
 
     // Mert Şahin: GPA 3.20, semester 3, Architecture
     // Studio grade AA (meets requirement), portfolio uploaded
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-mert-sahin",
       studentId: "student-mert",
       studentTckn: "20202020202",
@@ -29,7 +29,6 @@ describe("Test Case 5G: Department Conditions Met", () => {
       submittedYksScore: 470.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

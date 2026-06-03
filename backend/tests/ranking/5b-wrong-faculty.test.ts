@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5B: Wrong Faculty", () => {
   let app: Express;
@@ -16,7 +16,7 @@ describe("Test Case 5B: Wrong Faculty", () => {
 
     // Kerem Doğan's application in Dean's Office queue for Architecture faculty
     // Dean's Office staff is from Engineering faculty (mismatch)
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-kerem-dogan",
       studentId: "student-kerem",
       studentTckn: "77777777777",
@@ -29,7 +29,6 @@ describe("Test Case 5B: Wrong Faculty", () => {
       submittedYksScore: 480.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);

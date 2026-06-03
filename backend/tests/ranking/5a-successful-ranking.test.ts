@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
   let app: Express;
@@ -18,7 +18,7 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
     // Quota: Asil:2, Yedek:3
     // Create 6 applications to test Asil/Yedek/Red assignment
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "app-sevda-birkan",
         studentId: "student-sevda",
         studentTckn: "11111111111",
@@ -31,9 +31,8 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
         submittedYksScore: 495.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "app-rank-2",
         studentTckn: "22222222222",
         studentFullName: "Second Applicant",
@@ -44,9 +43,8 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
         submittedYksScore: 485.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "app-rank-3",
         studentTckn: "33333333333",
         studentFullName: "Third Applicant",
@@ -57,9 +55,8 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
         submittedYksScore: 475.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "app-rank-4",
         studentTckn: "44444444444",
         studentFullName: "Fourth Applicant",
@@ -70,9 +67,8 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
         submittedYksScore: 465.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "app-rank-5",
         studentTckn: "55555555555",
         studentFullName: "Fifth Applicant",
@@ -83,9 +79,8 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
         submittedYksScore: 455.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "app-rank-6",
         studentTckn: "66666666666",
         studentFullName: "Sixth Applicant",
@@ -96,7 +91,6 @@ describe("Test Case 5A: Successful YGK Evaluation and Ranking", () => {
         submittedYksScore: 445.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

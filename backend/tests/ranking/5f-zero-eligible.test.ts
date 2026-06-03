@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5F: Zero Eligible Applicants", () => {
   let app: Express;
@@ -16,7 +16,7 @@ describe("Ranking 5F: Zero Eligible Applicants", () => {
 
     // All applicants fail eligibility for different reasons
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "zero-app-01",
         studentId: "student-zero-01",
         studentTckn: "62345678901",
@@ -30,9 +30,8 @@ describe("Ranking 5F: Zero Eligible Applicants", () => {
         submittedYksScore: 480.0,
         yksExamYear: 2024,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "zero-app-02",
         studentId: "student-zero-02",
         studentTckn: "62345678902",
@@ -46,9 +45,8 @@ describe("Ranking 5F: Zero Eligible Applicants", () => {
         submittedYksScore: 470.0,
         yksExamYear: 2024,
         finishedSemester: 2, // Invalid
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "zero-app-03",
         studentId: "student-zero-03",
         studentTckn: "62345678903",
@@ -62,7 +60,6 @@ describe("Ranking 5F: Zero Eligible Applicants", () => {
         submittedYksScore: undefined, // Missing
         yksExamYear: undefined,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

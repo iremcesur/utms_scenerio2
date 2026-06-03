@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus, RankingCategory } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Ranking 5D: Ineligible - Expired YKS Score", () => {
   let app: Express;
@@ -15,7 +15,7 @@ describe("Ranking 5D: Ineligible - Expired YKS Score", () => {
     container = created.container;
 
     const applications = [
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "yks-app-01",
         studentId: "student-yks-01",
         studentTckn: "42345678901",
@@ -29,9 +29,8 @@ describe("Ranking 5D: Ineligible - Expired YKS Score", () => {
         submittedYksScore: 480.0,
         yksExamYear: 2020, // Expired (before 2022)
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "yks-app-02",
         studentId: "student-yks-02",
         studentTckn: "42345678902",
@@ -45,9 +44,8 @@ describe("Ranking 5D: Ineligible - Expired YKS Score", () => {
         submittedYksScore: 470.0,
         yksExamYear: 2023, // Valid
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
-      buildTestApplication({
+      buildReadyForRankingApplication({
         applicationId: "yks-app-03",
         studentId: "student-yks-03",
         studentTckn: "42345678903",
@@ -61,7 +59,6 @@ describe("Ranking 5D: Ineligible - Expired YKS Score", () => {
         submittedYksScore: undefined, // Missing YKS score
         yksExamYear: undefined,
         finishedSemester: 3,
-        currentStatus: ApplicationStatus.IntakeVerified,
       }),
     ];
 

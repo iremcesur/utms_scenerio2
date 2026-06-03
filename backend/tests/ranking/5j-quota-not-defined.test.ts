@@ -3,7 +3,7 @@ import { Express } from "express";
 import { createApp } from "../../src/app";
 import { AppContainer } from "../../src/shared/container";
 import { ApplicationStatus } from "../../src/shared/types";
-import { buildTestApplication } from "./ranking-test-helpers";
+import { buildReadyForRankingApplication } from "./ranking-test-helpers";
 
 describe("Test Case 5J: Ranking Blocked - Quota Not Defined", () => {
   let app: Express;
@@ -14,7 +14,7 @@ describe("Test Case 5J: Ranking Blocked - Quota Not Defined", () => {
     app = created.app;
     container = created.container;
 
-    const application = buildTestApplication({
+    const application = buildReadyForRankingApplication({
       applicationId: "app-quota-test",
       studentId: "student-quota",
       studentTckn: "50505050505",
@@ -27,7 +27,6 @@ describe("Test Case 5J: Ranking Blocked - Quota Not Defined", () => {
       submittedYksScore: 460.0,
       yksExamYear: 2024,
       finishedSemester: 3,
-      currentStatus: ApplicationStatus.IntakeVerified,
     });
 
     container.applications.put(application);
@@ -89,7 +88,7 @@ describe("Test Case 5J: Ranking Blocked - Quota Not Defined", () => {
 
     // Verify no ranking occurred
     const app1 = container.applications.findById("app-quota-test");
-    expect(app1?.currentStatus).toBe(ApplicationStatus.IntakeVerified);
+    expect(app1?.currentStatus).toBe(ApplicationStatus.InReviewYgk);
     expect(app1?.rankingCategory).toBeUndefined();
   });
 });
