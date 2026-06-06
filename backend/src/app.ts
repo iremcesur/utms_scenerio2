@@ -51,6 +51,19 @@ export function createApp(options: CreateAppOptions = {}): { app: Express; conta
     res.json({ message: "Test verileri sıfırlandı" });
   });
 
+  // Active period check endpoint (mock — returns a hardcoded open period)
+  app.get("/api/period/active", (_req: Request, res: Response) => {
+    const now = new Date();
+    // Mock: period is always open in development
+    res.json({
+      periodId: "period-spring-2026",
+      name: "2025-2026 Bahar Dönemi Yatay Geçiş",
+      startDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+      endDate: new Date(now.getFullYear(), now.getMonth() + 1, 28).toISOString(),
+      isActive: true,
+    });
+  });
+
   const auth = mockAuthMiddleware(container);
   app.use("/api/applications", auth, buildApplicationRouter());
   app.use("/api/documents", auth, buildDocumentUploadRouter());

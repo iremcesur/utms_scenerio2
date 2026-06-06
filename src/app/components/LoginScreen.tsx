@@ -74,6 +74,17 @@ const MOCK_USERS: Record<string, { password: string; user: User }> = {
       roles: ['Dean'],
       email: 'deans-eng@iyte.edu.tr'
     }
+  },
+  '11223344556': {
+    password: 'student123',
+    user: {
+      id: 'student-zeynep-yilmaz',
+      tckn: '11223344556',
+      name: 'Zeynep',
+      surname: 'Yılmaz',
+      roles: ['Student'],
+      email: 'zeynep.yilmaz@student.edu.tr'
+    }
   }
 };
 
@@ -258,7 +269,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <div className="mt-8 pt-6 border-t border-gray-100">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 text-center">Demo Giriş Bilgileri</p>
             <div className="grid grid-cols-2 gap-2 text-[10px] font-medium text-gray-500">
-              <div className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col"><span>Öğrenci: <span className="text-gray-900">12345678901</span></span><span>Şifre: <span className="text-gray-900">student123</span></span></div>
+              <div className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col">
+                <span>Öğrenci (GPA 3.45): <span className="text-gray-900">12345678901</span></span>
+                <span>Şifre: <span className="text-gray-900">student123</span></span>
+                <span className="text-blue-500 mt-1">Test 2A, 2B, 2D, 2E</span>
+              </div>
+              <div className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col">
+                <span>Öğrenci (GPA 2.0): <span className="text-gray-900">11223344556</span></span>
+                <span>Şifre: <span className="text-gray-900">student123</span></span>
+                <span className="text-blue-500 mt-1">Test 2C</span>
+              </div>
               <div className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col"><span>ÖİDB: <span className="text-gray-900">11111111111</span></span><span>Şifre: <span className="text-gray-900">oidb123</span></span></div>
               <div className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col"><span>YGK: <span className="text-gray-900">22222222222</span></span><span>Şifre: <span className="text-gray-900">ygk123</span></span></div>
               <div className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col"><span>YGK Başkanı: <span className="text-gray-900">33333333333</span></span><span>Şifre: <span className="text-gray-900">ygkchair123</span></span></div>
