@@ -8,6 +8,7 @@ import { buildDocumentUploadRouter } from "./modules/document-upload/document-up
 import { buildApplicationRouter } from "./modules/application/application.routes";
 import { buildRankingRouter } from "./modules/ranking/ranking.routes";
 import { buildDeanRouter } from "./modules/dean/dean.routes";
+import { buildAuthRouter } from "./modules/auth/auth.routes";
 // DEV-ONLY: remove this import before submission
 import { seedAll } from "./mocks/seed-data";
 
@@ -33,7 +34,7 @@ export function createApp(options: CreateAppOptions = {}): { app: Express; conta
   app.use(express.json({ limit: "12mb" }));
 
   app.get("/health", (_req: Request, res: Response) => {
-    res.json({ status: "ok", scope: "Scenario 3 (Document Upload) & Scenario 4 (OIDB) & Scenario 5 (Ranking) & Scenario 6 (Intibak)" });
+    res.json({ status: "ok", scope: "Scenario 1 (Login) & Scenario 3 (Document Upload) & Scenario 4 (OIDB) & Scenario 5 (Ranking) & Scenario 6 (Intibak)" });
   });
 
   // DEV-ONLY: reset all in-memory data back to seed state — remove before submission
@@ -47,22 +48,13 @@ export function createApp(options: CreateAppOptions = {}): { app: Express; conta
     container.notifications.clear();
     container.users.clear();
     container.curriculum.clear();
+    container.auth.clear();
     seedAll(container);
     res.json({ message: "Test verileri sıfırlandı" });
   });
 
-  // Active period check endpoint (mock — returns a hardcoded open period)
-  app.get("/api/period/active", (_req: Request, res: Response) => {
-    const now = new Date();
-    // Mock: period is always open in development
-    res.json({
-      periodId: "period-spring-2026",
-      name: "2025-2026 Bahar Dönemi Yatay Geçiş",
-      startDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
-      endDate: new Date(now.getFullYear(), now.getMonth() + 1, 28).toISOString(),
-      isActive: true,
-    });
-  });
+  // Scenario 1 (Login) — pre-authentication endpoints, mounted before mock-auth.
+  app.use("/api/auth", buildAuthRouter(container));
 
   const auth = mockAuthMiddleware(container);
   app.use("/api/applications", auth, buildApplicationRouter());
